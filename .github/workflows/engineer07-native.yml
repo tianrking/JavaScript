@@ -22,7 +22,7 @@ jobs:
         run: |
           node --version
           git rev-parse HEAD
-          test "$(git hash-object Data-Structures/Heap/KeyPriorityQueue.js)" = "$(git rev-parse 5c39e87a9a31f279c60f830ad74a845e4788a517:Data-Structures/Heap/KeyPriorityQueue.js)"
+          test "$(git hash-object Data-Structures/Heap/KeyPriorityQueue.js)" = "420933396e361b804dfad30064f3bb75b5041f67"
           git hash-object Data-Structures/Heap/KeyPriorityQueue.js Data-Structures/Heap/test/KeyPriorityQueueInfinity.test.js
           sha256sum Data-Structures/Heap/KeyPriorityQueue.js Data-Structures/Heap/test/KeyPriorityQueueInfinity.test.js
       - name: Existing native queue tests
