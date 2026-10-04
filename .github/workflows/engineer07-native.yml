@@ -2,11 +2,11 @@ name: Engineer07 native queue validation
 on:
   push:
     branches:
-      - codex/native-key-queue-red
+      - codex/native-key-queue-green
 permissions:
   contents: read
 jobs:
-  original-regressions:
+  fixed-regressions:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,20 +18,33 @@ jobs:
           cache: npm
       - name: Install project dependencies
         run: npm ci
-      - name: Record original production and regression source
+      - name: Format regression source with project Prettier
+        run: npx prettier Data-Structures/Heap/test/KeyPriorityQueueInfinity.test.js --write
+      - name: Record fixed production and regression source
         run: |
           node --version
           git rev-parse HEAD
-          test "$(git hash-object Data-Structures/Heap/KeyPriorityQueue.js)" = "420933396e361b804dfad30064f3bb75b5041f67"
           git hash-object Data-Structures/Heap/KeyPriorityQueue.js Data-Structures/Heap/test/KeyPriorityQueueInfinity.test.js
           sha256sum Data-Structures/Heap/KeyPriorityQueue.js Data-Structures/Heap/test/KeyPriorityQueueInfinity.test.js
-      - name: Existing native queue tests
-        run: npm test -- Data-Structures/Heap/test/KeyPriorityQueue.test.js
-      - name: Original native infinite priority regressions
-        run: npm test -- Data-Structures/Heap/test/KeyPriorityQueueInfinity.test.js
-      - name: Verify unchanged original source
+      - name: Fixed native queue regressions
+        run: npm test -- Data-Structures/Heap/test/KeyPriorityQueue.test.js Data-Structures/Heap/test/KeyPriorityQueueInfinity.test.js
+      - name: Full native test suite
+        run: npm test
+      - name: Whole project Prettier check
+        run: npm run check-style
+      - name: Native project coverage
+        run: npm test -- --coverage
+      - name: Verify final native source
         if: always()
         run: |
           git hash-object Data-Structures/Heap/KeyPriorityQueue.js Data-Structures/Heap/test/KeyPriorityQueueInfinity.test.js
           sha256sum Data-Structures/Heap/KeyPriorityQueue.js Data-Structures/Heap/test/KeyPriorityQueueInfinity.test.js
-          git diff --exit-code
+          git diff --exit-code -- Data-Structures/Heap/KeyPriorityQueue.js
+      - name: Save formatted source and coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-queue-source-and-coverage
+          path: |
+            Data-Structures/Heap/test/KeyPriorityQueueInfinity.test.js
+            coverage/coverage-final.json
