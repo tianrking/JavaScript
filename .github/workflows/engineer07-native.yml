@@ -1,0 +1,37 @@
+name: Engineer07 native queue validation
+on:
+  push:
+    branches:
+      - codex/native-key-queue-red
+permissions:
+  contents: read
+jobs:
+  original-regressions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install project dependencies
+        run: npm ci
+      - name: Record original production and regression source
+        run: |
+          node --version
+          git rev-parse HEAD
+          test "$(git hash-object Data-Structures/Heap/KeyPriorityQueue.js)" = "$(git rev-parse 5c39e87a9a31f279c60f830ad74a845e4788a517:Data-Structures/Heap/KeyPriorityQueue.js)"
+          git hash-object Data-Structures/Heap/KeyPriorityQueue.js Data-Structures/Heap/test/KeyPriorityQueueInfinity.test.js
+          sha256sum Data-Structures/Heap/KeyPriorityQueue.js Data-Structures/Heap/test/KeyPriorityQueueInfinity.test.js
+      - name: Existing native queue tests
+        run: npm test -- Data-Structures/Heap/test/KeyPriorityQueue.test.js
+      - name: Original native infinite priority regressions
+        run: npm test -- Data-Structures/Heap/test/KeyPriorityQueueInfinity.test.js
+      - name: Verify unchanged original source
+        if: always()
+        run: |
+          git hash-object Data-Structures/Heap/KeyPriorityQueue.js Data-Structures/Heap/test/KeyPriorityQueueInfinity.test.js
+          sha256sum Data-Structures/Heap/KeyPriorityQueue.js Data-Structures/Heap/test/KeyPriorityQueueInfinity.test.js
+          git diff --exit-code
